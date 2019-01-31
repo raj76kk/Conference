@@ -50,7 +50,7 @@ public class Slot
 	public boolean isValidSession(int totalTime)
 	{
 		boolean validSession = false;
-		if (min == 0) {
+		if (min != 0) {
 			if (totalTime > 0 && totalTime <= max) {
 				validSession = true;
 			}

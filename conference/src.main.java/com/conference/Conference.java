@@ -33,6 +33,7 @@ public class Conference
 		// morning slots
 		List<List<Event>> m = combinations(events, possibleDays,
 				new Slot(3 * 60));
+
 		// clearing scheduled talks
 		clear(m, events);
 
@@ -84,6 +85,7 @@ public class Conference
 
 				comb.add(event);
 				totalTime += event.getDuration();
+
 				if (totalTime >= slot.getMax()) {
 					break;
 				}
@@ -146,6 +148,7 @@ public class Conference
 				}
 			}
 		}
+		System.out.println();
 
 		if (schedules.get("evening") != null
 				&& !schedules.get("evening").isEmpty()) {
@@ -164,8 +167,7 @@ public class Conference
 	{
 		try {
 			Conference c = new Conference();
-			List<Event> events = c.readInput("testFiles/test2.txt");
-
+			List<Event> events = c.readInput("testFiles/test1.txt");
 			if (events != null && !events.isEmpty()) {
 				Map<String, List<List<Event>>> schedules = c.schedule(events);
 				c.printResults(schedules);
