@@ -2,9 +2,14 @@ package com.conference;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +19,8 @@ public class Conference
 {
 	// max session in a day
 	private static final int PER_DAY = 7 * 60;
+
+	private static final DateFormat formater = new SimpleDateFormat("hh:mm a");
 
 	private Map<String, List<List<Event>>> schedule(List<Event> events)
 			throws Exception
@@ -138,29 +145,66 @@ public class Conference
 
 	private void printResults(Map<String, List<List<Event>>> schedules)
 	{
-		if (schedules.get("morning") != null
-				&& !schedules.get("morning").isEmpty()) {
-			System.out.println("Morning: ");
-			for (List<Event> schedule : schedules.get("morning")) {
-				for (Event e : schedule) {
-					System.out.println(
-							e.getName() + "for " + e.getDuration() + " mins.");
+		String out = "";
+		List<List<Event>> mornEvents = schedules.get("morning");
+		List<List<Event>> evenEvents = schedules.get("evening");
+		for (int day = 0; day < mornEvents.size(); day++) {
+			Date date = new Date();
+			date.setHours(9);
+			date.setMinutes(0);
+			LocalDateTime localDateTime = date.toInstant()
+					.atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+			Date edate = new Date();
+			edate.setHours(16);
+			edate.setMinutes(0);
+			LocalDateTime eveningTime = edate.toInstant()
+					.atZone(ZoneId.systemDefault()).toLocalDateTime();
+			out += "Track " + (day + 1) + ":" + "\n";
+			for (Event event : mornEvents.get(day)) {
+				out += formater
+						.format(Date.from(localDateTime
+								.atZone(ZoneId.systemDefault()).toInstant()))
+						+ " " + event.getName() + "\n";
+				localDateTime = localDateTime.plusMinutes(event.getDuration());
+			}
+			out += formater
+					.format(Date.from(localDateTime
+							.atZone(ZoneId.systemDefault()).toInstant()))
+					+ " Lunch" + "\n";
+			localDateTime = localDateTime.plusMinutes(60);
+
+			// to handle cases where morning session has extra session and no
+			// evening session
+			try {
+				for (Event event : evenEvents.get(day)) {
+					out += formater
+							.format(Date.from(
+									localDateTime.atZone(ZoneId.systemDefault())
+											.toInstant()))
+							+ " " + event.getName() + "\n";
+					localDateTime = localDateTime
+							.plusMinutes(event.getDuration());
 				}
+			} catch (Exception e) {
+			}
+			// if evening event finishes before 4PM Network event at 4PM
+			// else it is occured at 5PM if it evening slot finished between 4
+			// and 5 PM
+			if (localDateTime.isBefore(eveningTime)) {
+				out += formater
+						.format(Date.from(eveningTime
+								.atZone(ZoneId.systemDefault()).toInstant()))
+						+ " Network Event" + "\n" + "\n";
+			} else {
+				out += formater
+						.format(Date.from(eveningTime.plusHours(1)
+								.atZone(ZoneId.systemDefault()).toInstant()))
+						+ " Network Event" + "\n" + "\n";
 			}
 		}
-		System.out.println();
 
-		if (schedules.get("evening") != null
-				&& !schedules.get("evening").isEmpty()) {
-			System.out.println("Evening: ");
-			for (List<Event> schedule : schedules.get("evening")) {
-				for (Event e : schedule) {
-					System.out.println(
-							e.getName() + "for " + e.getDuration() + " mins.");
-				}
-			}
-		}
-
+		System.out.println(out);
 	}
 
 	public static void main(String[] args)
@@ -172,7 +216,6 @@ public class Conference
 				Map<String, List<List<Event>>> schedules = c.schedule(events);
 				c.printResults(schedules);
 			}
-
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found: " + e.getMessage());
 		} catch (Exception e) {
