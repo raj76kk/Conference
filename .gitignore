@@ -1,0 +1,12 @@
+# Compiled java classes
+*.class
+bin/
+
+# eclipse specific files
+.project
+.classpath
+.settings
+
+# App Log files
+log/
+*.log
